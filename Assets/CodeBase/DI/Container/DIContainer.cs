@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace CodeBase.DI
 {
-    public class DIContainer : IDependencyResolver
+    public class DIContainer : IDependencyResolver, IInstantiator
     {
         private readonly Dictionary<BindID, BindInfo> _bindings;
         private readonly Dictionary<BindID, ProviderInfo> _providers;
@@ -56,6 +56,22 @@ namespace CodeBase.DI
             }
 
             throw new InvalidOperationException("This type is not registered in the container!");
+        }
+
+        public GameObject Instatiate(GameObject prefab)
+        {
+            GameObject gameObject = GameObject.Instantiate<GameObject>(prefab);
+            Inject(gameObject);
+
+            return gameObject;
+        }
+
+        public GameObject Instatiate(GameObject prefab, Vector3 position, Quaternion rotation)
+        {
+            GameObject gameObject = GameObject.Instantiate<GameObject>(prefab, position, rotation);
+            Inject(gameObject);
+
+            return gameObject;
         }
 
         internal void FinalizeBind(BindInfo bindInfo, ProviderInfo providerInfo, Type contractType)
