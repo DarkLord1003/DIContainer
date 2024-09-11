@@ -8,13 +8,27 @@ namespace CodeBase.DI
     {
         private readonly Dictionary<BindID, BindInfo> _bindings;
         private readonly Dictionary<BindID, ProviderInfo> _providers;
-        private readonly InjectionHandler _injectionHandler;
 
-        public DIContainer()
+        private readonly HashSet<Type> _resolvingTypes;
+        private readonly InjectionHandler _injectionHandler;
+        private readonly DIContainer _parentContainer;
+
+        public DIContainer(DIContainer parentContainer)
         {
             _bindings = new Dictionary<BindID, BindInfo>(); 
             _providers = new Dictionary<BindID, ProviderInfo>();
+            _resolvingTypes = new HashSet<Type>();
             _injectionHandler = new InjectionHandler(this);
+        }
+
+        public DIContainer() : this(null)
+        {
+
+        }
+
+        public DIContainer CreateSubContainer()
+        {
+            return new DIContainer(this);
         }
 
         public Binder<TInterface> Bind<TInterface>()
@@ -50,28 +64,50 @@ namespace CodeBase.DI
 
         public object Resolve(Type contractType)
         {
-            if (_providers.TryGetValue(new BindID(contractType), out ProviderInfo providerInfo))
+            if (_resolvingTypes.Contains(contractType))
+                throw new InvalidOperationException($"Circular dependency detected for type - {contractType.FullName}");
+
+            _resolvingTypes.Add(contractType);
+
+            try
             {
-                return providerInfo.Provider.GetInstance();
+                if (_providers.TryGetValue(new BindID(contractType), out ProviderInfo providerInfo))
+                {
+                    return providerInfo.Provider.GetInstance();
+                }
+
+                if (_parentContainer != null)
+                {
+                    return _parentContainer.Resolve(contractType);
+                }
+
+                throw new InvalidOperationException($"This type - {contractType.FullName} - is not registered in the container!");
             }
-
-            throw new InvalidOperationException("This type is not registered in the container!");
+            finally
+            {
+                _resolvingTypes.Remove(contractType);
+            }
         }
 
-        public GameObject Instatiate(GameObject prefab)
+        public TImplementation InstantiatePrefabForComponent<TImplementation>(GameObject prefab, Vector3 position, Quaternion rotation, bool searchInChildren = false) 
+            where TImplementation : Component
         {
-            GameObject gameObject = GameObject.Instantiate<GameObject>(prefab);
+            if (prefab == null)
+                throw new InvalidOperationException("It is necessary to pass the prefab to create a game object!");
+
+            GameObject gameObject  = GameObject.Instantiate(prefab, position, rotation);
             Inject(gameObject);
 
-            return gameObject;
-        }
+            TImplementation component = null;
+            if(searchInChildren)
+                component = gameObject.GetComponentInChildren<TImplementation>();
+            else
+                component = gameObject.GetComponent<TImplementation>();
 
-        public GameObject Instatiate(GameObject prefab, Vector3 position, Quaternion rotation)
-        {
-            GameObject gameObject = GameObject.Instantiate<GameObject>(prefab, position, rotation);
-            Inject(gameObject);
+            if (component == null)
+                throw new InvalidOperationException($"Component of type {typeof(TImplementation).FullName} not found on the instantiated object.");
 
-            return gameObject;
+            return component;
         }
 
         internal void FinalizeBind(BindInfo bindInfo, ProviderInfo providerInfo, Type contractType)

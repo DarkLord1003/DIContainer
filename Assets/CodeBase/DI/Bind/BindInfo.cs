@@ -9,6 +9,7 @@ namespace CodeBase.DI
         public readonly List<Type> ToTypes;
         public readonly List<TypeValuePair> Arguments;
 
+        public Func<object> Factory {  get; set; }
         public object Instance { get; set; }
         public ScopeType ScopeType { get; set; }
 
@@ -26,6 +27,8 @@ namespace CodeBase.DI
             Arguments.Clear();
 
             Instance = null;
+            Factory = null;
+
             ScopeType = ScopeType.None;
         }
     }
@@ -34,6 +37,6 @@ namespace CodeBase.DI
     {
         None,
         Transient,
-        Singletone,
+        Singleton,
     }
 }

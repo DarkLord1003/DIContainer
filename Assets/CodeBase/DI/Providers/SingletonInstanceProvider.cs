@@ -12,15 +12,12 @@ namespace CodeBase.DI
         {
             if (bindInfo != null)
             {
-                if (bindInfo.Instance != null)
+                if (bindInfo.Instance == null)
                 {
-                    return bindInfo.Instance;
+                    bindInfo.Instance = bindInfo.Factory == null ? CreateInstance(bindInfo) : bindInfo.Factory;
                 }
-                else
-                {
-                    bindInfo.Instance = CreateInstance(bindInfo);
-                    return bindInfo.Instance;
-                }
+
+                return bindInfo.Instance;
             }
 
             return null;

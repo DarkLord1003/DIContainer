@@ -1,8 +1,7 @@
-﻿namespace CodeBase.DI
+﻿
+namespace CodeBase.DI
 {
-    public interface IBindLifeTime
+    public interface IBindLifeTime : IBindSingleton, IBindTransient
     {
-        void AsTransient();
-        void AsSingleton();
     }
 }

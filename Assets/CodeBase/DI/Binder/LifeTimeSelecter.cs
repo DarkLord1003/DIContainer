@@ -17,7 +17,7 @@ namespace CodeBase.DI
 
         public void AsSingleton()
         {
-            SelectLifeTime(ScopeType.Singletone, _bindInfo, new SingletonInstanceProvider(_container, _bindInfo));
+            SelectLifeTime(ScopeType.Singleton, _bindInfo, new SingletonInstanceProvider(_container, _bindInfo));
         }
 
         public void AsTransient()

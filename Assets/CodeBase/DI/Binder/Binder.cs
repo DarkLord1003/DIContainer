@@ -2,7 +2,8 @@
 
 namespace CodeBase.DI
 {
-    public class Binder<TInterface> : IBindTo<TInterface>, IBindToWithArguments<TInterface>, IBindFromFactory<TInterface>
+    public class Binder<TInterface> : IBindTo<TInterface>, IBindToWithArguments<TInterface>, IBindFromFactory<TInterface>,
+        IBindFromInstance<TInterface>
     {
         private DIContainer _container;
         private BindInfo _bindInfo;
@@ -13,17 +14,26 @@ namespace CodeBase.DI
             _bindInfo = bindInfo;
         }
 
-        public IBindLifeTime FormFactory<TImplementation>(Func<TImplementation> factory) where TImplementation : class, TInterface
+        public IBindLifeTime FromFactory<TImplementation>(Func<object> factory) where TImplementation : class, TInterface
         {
             CreateOrSetBindInfo(typeof(TImplementation));
-            _bindInfo.Instance = factory?.Invoke();
+            _bindInfo.Factory = factory;
 
             return new LifeTimeSelecter(_container, _bindInfo, typeof(TInterface));
+        }
+
+        public IBindSingleton FromInstance<TImplementation>(object instance) where TImplementation : class, TInterface
+        {
+            CreateOrSetBindInfo(typeof(TImplementation));
+            _bindInfo.Instance = instance;
+
+            return new LifeTimeSelecter(_container,_bindInfo, typeof(TInterface));
         }
 
         public IBindLifeTime To<TImplementation>() where TImplementation : class, TInterface
         {
             CreateOrSetBindInfo(typeof(TImplementation));
+
             return new LifeTimeSelecter(_container, _bindInfo, typeof(TInterface));
         }
 
@@ -51,7 +61,7 @@ namespace CodeBase.DI
             if (to.IsAbstract || to.IsInterface)
                 throw new InvalidOperationException("This type cannot be registered because it is an abstraction or interface!");
 
-            if (_bindInfo.ScopeType == ScopeType.Singletone)
+            if (_bindInfo.ScopeType == ScopeType.Singleton)
                 throw new InvalidOperationException("This type has already been registered!");
 
             _bindInfo.Reset();
