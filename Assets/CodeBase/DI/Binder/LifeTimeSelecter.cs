@@ -15,9 +15,10 @@ namespace CodeBase.DI
             _contractType = contractType;
         }
 
-        public void AsSingleton()
+        public IBindNonLazy AsSingleton()
         {
             SelectLifeTime(ScopeType.Singleton, _bindInfo, new SingletonInstanceProvider(_container, _bindInfo));
+            return new NonLazySelecter(_container, _contractType);
         }
 
         public void AsTransient()

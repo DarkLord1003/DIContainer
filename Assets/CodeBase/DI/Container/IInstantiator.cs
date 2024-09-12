@@ -6,5 +6,7 @@ namespace CodeBase.DI
     {
         TImplementation InstantiatePrefabForComponent<TImplementation>(GameObject prefab, Vector3 position, Quaternion rotation, bool searchInChildren = false)
             where TImplementation : Component;
+
+        GameObject InstantiatePrefab(GameObject prefab, Vector3 position, Quaternion rotation);
     }
 }

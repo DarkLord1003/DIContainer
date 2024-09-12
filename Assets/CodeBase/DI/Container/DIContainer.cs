@@ -92,11 +92,7 @@ namespace CodeBase.DI
         public TImplementation InstantiatePrefabForComponent<TImplementation>(GameObject prefab, Vector3 position, Quaternion rotation, bool searchInChildren = false) 
             where TImplementation : Component
         {
-            if (prefab == null)
-                throw new InvalidOperationException("It is necessary to pass the prefab to create a game object!");
-
-            GameObject gameObject  = GameObject.Instantiate(prefab, position, rotation);
-            Inject(gameObject);
+            GameObject gameObject = InstantiatePrefab(prefab, position, rotation);
 
             TImplementation component = null;
             if(searchInChildren)
@@ -108,6 +104,17 @@ namespace CodeBase.DI
                 throw new InvalidOperationException($"Component of type {typeof(TImplementation).FullName} not found on the instantiated object.");
 
             return component;
+        }
+
+        public GameObject InstantiatePrefab(GameObject prefab, Vector3 position, Quaternion rotation)
+        {
+            if (prefab == null)
+                throw new InvalidOperationException("It is necessary to pass the prefab to create a game object!");
+
+            GameObject gameObject = GameObject.Instantiate(prefab, position, rotation);
+            Inject(gameObject);
+
+            return gameObject;
         }
 
         internal void FinalizeBind(BindInfo bindInfo, ProviderInfo providerInfo, Type contractType)
@@ -126,6 +133,14 @@ namespace CodeBase.DI
                 return bindInfo;
 
             return null;
+        }
+
+        internal void RegisterNonLazy(Type contractType)
+        {
+            if (_providers.TryGetValue(new BindID(contractType), out ProviderInfo providerInfo))
+            {
+                _providers[new BindID(contractType)].Provider.GetInstance();
+            }
         }
     }
 }
