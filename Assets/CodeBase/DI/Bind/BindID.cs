@@ -4,11 +4,11 @@ namespace CodeBase.DI
 {
     public struct BindID : IEquatable<BindID>
     {
-        private Type Type;
+        private Type _type;
 
         public BindID(Type type)
         {
-            Type = type;
+            _type = type;
         }
 
         public override bool Equals(object obj)
@@ -24,7 +24,12 @@ namespace CodeBase.DI
 
         public override int GetHashCode()
         {
-            return Type.GetHashCode();
+            unchecked
+            {
+                int hash = 17;
+                hash = hash * 29 + _type.GetHashCode();
+                return hash;
+            }
         }
 
         public bool Equals(BindID other)
@@ -34,7 +39,7 @@ namespace CodeBase.DI
 
         public static bool operator == (BindID left, BindID right)
         {
-            return left.Type == right.Type;
+            return left._type == right._type;
         }
 
         public static bool operator != (BindID left, BindID right)

@@ -1,5 +1,4 @@
-﻿using System.Linq;
-
+﻿
 namespace CodeBase.DI
 {
     public class SingletonInstanceProvider : InstanceProviderBase

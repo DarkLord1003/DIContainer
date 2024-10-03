@@ -10,7 +10,7 @@ namespace CodeBase.DI
         public NonLazySelecter(DIContainer container, Type contractType)
         {
             _container = container;
-            _contractType = contractType;
+            _contractType = contractType;;
         }
 
         public void NonLazy()

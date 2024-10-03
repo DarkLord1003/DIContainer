@@ -11,6 +11,7 @@ namespace CodeBase.DI
 
         private readonly HashSet<Type> _resolvingTypes;
         private readonly InjectionHandler _injectionHandler;
+        private readonly GameObjectInjectionHandler _gameObjectInjectionHandler;
         private readonly DIContainer _parentContainer;
 
         public DIContainer(DIContainer parentContainer)
@@ -19,6 +20,7 @@ namespace CodeBase.DI
             _providers = new Dictionary<BindID, ProviderInfo>();
             _resolvingTypes = new HashSet<Type>();
             _injectionHandler = new InjectionHandler(this);
+            _gameObjectInjectionHandler = new GameObjectInjectionHandler(this);
         }
 
         public DIContainer() : this(null)
@@ -50,7 +52,7 @@ namespace CodeBase.DI
             _injectionHandler.Inject(instance, injectionType);
         }
 
-        public void Inject(GameObject gameObject, InjectionType injectionType = InjectionType.All)
+        public void Inject(GameObject gameObject, InjectionType injectionType = InjectionType.All, ComponentCheckType componentCheckType = ComponentCheckType.All)
         {
             if (gameObject == null)
                 throw new InvalidOperationException("To embed dependencies in a game object, you must specify a reference to the object!");
@@ -58,7 +60,7 @@ namespace CodeBase.DI
             MonoBehaviour[] behaviours = gameObject.GetComponentsInChildren<MonoBehaviour>();
             foreach (MonoBehaviour behaviour in behaviours)
             {
-                _injectionHandler.Inject(behaviour);
+                _gameObjectInjectionHandler.Inject(behaviour, injectionType, componentCheckType);
             }
         }
 
@@ -102,6 +104,8 @@ namespace CodeBase.DI
 
             if (component == null)
                 throw new InvalidOperationException($"Component of type {typeof(TImplementation).FullName} not found on the instantiated object.");
+
+            Inject(gameObject);
 
             return component;
         }
